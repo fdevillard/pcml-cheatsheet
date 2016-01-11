@@ -22,3 +22,7 @@
 *.out
 *.synctex.gz
 *~
+.DS_Store
+*.swp
+*.fdb_latexmk
+*.fls

@@ -1,5 +1,8 @@
 PCML Cheat Sheet
 ================
+
+Fork of https://github.com/Denwid/pcml-cheatsheet. Thank Denwid for your work !
+
 This is a collaborative cheat sheet for the EPFL (http://epfl.ch/) class "Pattern recognition and machine learning".
 It will be exactly two pages in the end to take with you to the exam.
 Make it your own cheat sheet and work with me if you like its style. 

@@ -57,16 +57,16 @@
 
 % ----------
 \section{General}
-\subsection{Dataset and Definitions}
-$\mathcal{D}$ is a set of training examples, the n-th Training Example ($n = 1,2, ..., N$), of this set is: $\bf{x}_n = \begin{bmatrix} x_{n1} \quad x_{n2} \quad ... \quad x_{nD} \end{bmatrix}$
+%\subsection{Dataset and Definitions}
+%$\mathcal{D}$ is a set of training examples, the n-th Training Example ($n = 1,2, ..., N$), of this set is: $\bf{x}_n = \begin{bmatrix} x_{n1} \quad x_{n2} \quad ... \quad x_{nD} \end{bmatrix}$
 
-We write all N training examples in a matrix: $\bf{X} = \begin{bmatrix} \bf{x}_1 ; \quad \bf{x}_2 ; \quad ... ; \quad \bf{x}_N \end{bmatrix}$
+%We write all N training examples in a matrix: $\bf{X} = \begin{bmatrix} \bf{x}_1 ; \quad \bf{x}_2 ; \quad ... ; \quad \bf{x}_N \end{bmatrix}$
 
-In supervised learning, you are also given a set of observations corresponding to the training examples:  $\bf{y} = \begin{bmatrix} y_1 \quad y_2 \quad ... \quad y_{N} \end{bmatrix}^T$
+%In supervised learning, you are also given a set of observations corresponding to the training examples:  $\bf{y} = \begin{bmatrix} y_1 \quad y_2 \quad ... \quad y_{N} \end{bmatrix}^T$
 
-We assume a \emph{true} model behind the data, the observations are noisy versions of this ground truth: $y = y_{true} + \epsilon$.
+%We assume a \emph{true} model behind the data, the observations are noisy versions of this ground truth: $y = y_{true} + \epsilon$.
 
-The final goal is to predict a $\hat{y} = f(\bf{\hat{x}})$ given any $\bf{\hat{x}}$.
+%The final goal is to predict a $\hat{y} = f(\bf{\hat{x}})$ given any $\bf{\hat{x}}$.
 
 \subsection{Distributions}
 Multivariate gaussian distribution: $\mathcal{N}(\bf{X} | \bf{\mu} , \bf{\Sigma})$ \\
@@ -77,6 +77,9 @@ $\implies p(X = x) = \frac{1}{\sqrt{2 \pi \sigma^2}} \exp{(- \frac{1}{2} ( \frac
 
 Poisson distribution: $\mathcal{P}(X| \lambda)$ \\
 $\implies p(X = k) = \frac{\lambda ^ k}{k!} \exp{(- \lambda)}$
+
+\subsection{Distribution properties}
+% TODO 
 
 \subsection{Properties}
 \textbf{Bayes rule}: $p(A, B) = p(A|B) p(B) = p(B|A) p(A)$
@@ -131,15 +134,17 @@ Newton's method is equivalent to solving many least-squares problems.
 
 Complexity: $\mathcal{O}(I N D^2 + I D^3)$, with the $D^3$ cost coming from the inversion of $\bf{H_k}$.
 
+% TODO: H_k for linear models
+
 \subsection{Expectation-Maximization}
-EM is a family of methods to find a MLE/MAP estimator if some of the data is missing (e.g. latent variables):
+%EM is a family of methods to find a MLE/MAP estimator if some of the data is missing (e.g. latent variables):
 
-Given is some data $\bf{x}$ and  a model with some latent variables $\bf{z}$ and a likelihood $\mathcal{L}(\btheta; \bf{x}, \bf{z})$ (e.g. a gaussian where we need to find the mean and the covariance).
-Goal is to find $\beta = \argmax_{\beta} \mathcal{L}_{lik}(\btheta; x)$, i.e. the MLE given only the data, without knowing the latent variables.
+%Given is some data $\bf{x}$ and  a model with some latent variables $\bf{z}$ and a likelihood $\mathcal{L}(\btheta; \bf{x}, \bf{z})$ (e.g. a gaussian where we need to find the mean and the covariance).
+%Goal is to find $\beta = \argmax_{\beta} \mathcal{L}_{lik}(\btheta; x)$, i.e. the MLE given only the data, without knowing the latent variables.
 
-The problem is, that this likelihood can oftentimes not be optimized in closed form with respect to $\btheta$.
+%The problem is, that this likelihood can oftentimes not be optimized in closed form with respect to $\btheta$.
 
-The solution is EM: Iteratively find better $\btheta$, start with $\btheta_0$ and iterate with variable $t$:
+%The solution is EM: Iteratively find better $\btheta$, start with $\btheta_0$ and iterate with variable $t$:
 \begin{itemize}
 \item E-step calculates the $\mathbb{E}$ of log likelihood, with respect to $\bf{Z}$ given $\bf{X}$ under the current estimate $\btheta_t$: $Q(\btheta, \btheta_t) = \mathbb{E}_{\bf{Z}|\bf{X},\btheta_t} [ log ( p(\bf{X}, \bf{Z} | \btheta) | X = x ]$
 \item M-step finds next estimate that maximizes: $\btheta_{t+1} = \argmax_{\btheta} Q(\btheta, \btheta_t)$
@@ -210,6 +215,7 @@ $\frac{ \partial\mathcal{L}(\bbeta) }{ \partial \bbeta } = \tilde{\bf{X}}^T [\si
 There's no closed form, we can use gradient descent.
 
 \subsection{Generalized linear model}
+% TODO Update it. Add the general form.
 The GLM consists of three elements:
 \begin{itemize}
   \item A probability distribution from the exponential family.
@@ -248,6 +254,7 @@ It is a sample approximation of the expected likelihood:
 $\mathcal{L}_{lik}(\bbeta) \approx E_y[ p(y \mid \bbeta) ]$
 
 \subsection{Bayesian methods}
+% TODO: Underbrace the different part, remove text
 Bayes rule: $p(A, B) = p(A|B) p(B) = p(B|A) p(A)$
 
 The \textbf{prior} $p(\bf{f}|\bf{X})$ encodes our prior belief about the ``true'' model $\bf{f}$. The \textbf{likelihood} $p(\bf{y}|\bf{f})$ measures the probability of our (possibly noisy) observations given the prior.
@@ -278,11 +285,11 @@ $m_{y_j \rightarrow z_i} = \sum_{z_k \neq z_i} p(y_j | z_k) \Pi(\text{messages r
 
 % ----------
 \section{Kernel methods}
-Kernels are another way to encode our prior believe about the relation of outputs to inputs. A kernel defines a distance measure, or ``similarity'' of two vectors. We define:
-
+%Kernels are another way to encode our prior believe about the relation of outputs to inputs. A kernel defines a distance measure, or ``similarity'' of two vectors. We define:
+%
 $(\bf{K})_{i,j} = \kappa(\bf{x_i}, \bf{x_j}) = \vec \phi(\bf{x_i})^T \vec \phi(\bf{x_j})$.
 
-The $\phi$ are not that important in the end, because we only use the Kernel as is. Sometimes it's even impossible to write them down explicitly.
+%The $\phi$ are not that important in the end, because we only use the Kernel as is. Sometimes it's even impossible to write them down explicitly.
 
 \begin{tabular}{ l | l }
   \hline
@@ -326,6 +333,8 @@ $
 
 This can be conditioned on $\bf{y}$ to find the PDF of $\bf{\hat{y}}$. Advantage: we output our prediction as probabilities (which represent uncertainty).
 
+% TODO: Add conditional values + remove some text
+
 % ----------
 \section{Neural Networks}
 A feed forward Neural Network is organized in $K$ layers, each layer with $M^{(k)}$ hidden units $z_i^{(k)}$. Activations $a_i^{(k)}$ are computed as the linear combination of the previous layer's terms, with weights $\bbeta^{(k)}$ (one $M^{(k-1)} \times 1$ vector of weights for each of the $M^{(k)}$ activations). Activations are then passed through a (possibly nonlinear) function $h$ to compute the hidden unit $z_i^{(k)}$.
@@ -342,13 +351,14 @@ $\bdelta^{(k-1)} = \frac{\partial \mathcal{L}}{\partial \bf{a}^{(k-1)}} = diag[ 
 $\frac{\partial \mathcal{L}}{\partial \bf{B}^{(1)}} = \bdelta^{(1)} \bf{x}^T$\\
 $\frac{\partial \mathcal{L}}{\partial \bf{B}^{(k)}} = \bdelta^{(k)} \bf{z}^{(k)T}$
 
-\subsection{Regularization}
-NN are not \textit{identifiable} (existence of many local optima), therefore the maximum likelihood estimator is not \textit{consistent}.
-
-NN are universal density estimators, and thus prone to severe overfitting. Techniques used to reduce overfitting include early stopping (stop optimizing when test error starts increasing) and ``weight decay'' (i.e. $L_2$ regularization).
-
+%\subsection{Regularization}
+%NN are not \textit{identifiable} (existence of many local optima), therefore the maximum likelihood estimator is not \textit{consistent}.
+%
+%NN are universal density estimators, and thus prone to severe overfitting. Techniques used to reduce overfitting include early stopping (stop optimizing when test error starts increasing) and ``weight decay'' (i.e. $L_2$ regularization).
+%
 % ----------
 \section{Support Vector Machines}
+% TODO Update
 Search for the hyperplane separating the data such that the gap (margin) is biggest.
 It minimizes the following cost function (``hinge loss''):
 
@@ -362,6 +372,7 @@ $\max_{\alpha \in [0; C]^N} \balpha^T \bf{1} - \frac{1}{2} \balpha^T \bf{Y K Y} 
 
 % ----------
 \section{Gaussian Mixture Models}
+% TODO Update
 In mixture models, the data is generated by a sum (a mix) of $K$ models. For GMM, these are gaussian:
 
 $p(\bf{x}_i | \theta) = \sum_{k=1}^K \pi_k p_k(\bf{x}_i | \theta) =  \sum_{k=1}^K \pi_k \mathcal{N}(\bf{x}_i | \underbrace{\bf{\mu}_k, \bf{\Sigma}_k}_{\theta})$
@@ -382,6 +393,8 @@ The same as with PCA, we can do with SVD:
 \end{colfig}
 
 The singular vals of a $N \times D$ matrix $\bf{X}$ are the square roots of the eigenvalues of the $D \times D$ matrix $\bf{X^T X}$
+
+
 % ----------
 \section{Concepts}
 
@@ -421,13 +434,14 @@ $P_{\theta_1}=P_{\theta_2} \quad\Rightarrow\quad \theta_1=\theta_2 \quad\ \text{
 
 A non-identifiable model will typically have many local optima yielding the same cost, e.g. $\mathcal{L}(W, Z) = \mathcal{L}(aW, \frac{1}{a} Z)$
 
-\subsection{Curse of dimensionality}
-With the dimensionality increase, every data point becomes arbitrarily far
-from every other data point and therefore the choice of nearest neighbor becomes random.
-In high dimension, data only covers a tiny fraction of the input space, making generalization extremely difficult.
-Or in other words, the volume of the space increases so fast that the available data become sparse.
+%\subsection{Curse of dimensionality}
+%With the dimensionality increase, every data point becomes arbitrarily far
+%from every other data point and therefore the choice of nearest neighbor becomes random.
+%In high dimension, data only covers a tiny fraction of the input space, making generalization extremely difficult.
+%Or in other words, the volume of the space increases so fast that the available data become sparse.
 
 \subsection{Primal vs. Dual}
+% TODO Update
 Instead of working in the \textbf{column space} of our data, we can work in the \textbf{row space}:
 $$\bf{\hat{y} = X \bbeta = X X^T \balpha = K \balpha}$$
 where $\bbeta \in \mathbb{R}^D$ and $\balpha \in \mathbb{R}^N$
@@ -445,6 +459,8 @@ In optimization, we get to the dual like this:
   \centering
   \includegraphics[width=\linewidth]{images/prim-dual.png}
 \end{colfig}
+
+\clearpage
 
 % ----- Less useful concepts
 \subsection{Consistency}
