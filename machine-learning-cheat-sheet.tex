@@ -1,5 +1,3 @@
-% TODO: Continue from EM-Algorithm of resume
-
 \documentclass[10pt,a4paper,landscape]{article}
 \usepackage{multicol}
 \usepackage{calc}
@@ -25,6 +23,10 @@
 \newcommand{\bdelta}{\boldsymbol\delta}
 \newcommand{\btheta}{\boldsymbol\theta}
 \newcommand{\bPhi}{\boldsymbol\Phi}
+
+\newcommand{\defop}{\stackrel{\bigtriangleup}{=}}
+
+\renewcommand{\vec}{\mathbf}
 
 \pdfinfo{
   /Title (Machine Learning Cheat Sheet)
@@ -106,6 +108,18 @@ Let $Y$ be any transformation and $\Sigma = cov(Y)$, then $cov(\alpha^TY, \beta^
 
 If $X\sim\mathcal{N}(\mu, \Omega)$ and $Y = a+BX$, then $Y\sim\mathcal{N}(a+B\mu, B\Omega B^T)$.
 
+\textbf{Gaussian conditioning} 
+\[
+\begin{aligned}
+p(\bf{x}) &= \mathcal{N}(\bf{x} | \boldsymbol\mu, \boldsymbol\Lambda^{-1}) \\
+p(\bf{y}|\bf{x}) &= \mathcal{N}(\bf{y} | \bf{Ax + b, L}^{-1}) \\
+\Downarrow \\
+p(\bf{y}) &= \mathcal{N}(\bf{y} | \bf{A} \boldsymbol\mu + \bf{b}, \bf{L}^-1 + \bf{A} \boldsymbol\Lambda^{-1} \bf{A}^T)	\\
+p(\bf{x}|\bf{y}) &= \mathcal{N}(\bf{x} |\boldsymbol\Sigma \{ \bf{A^T L(y - b) + \Lambda \mu} \}, \boldsymbol\Sigma) \\
+\text{where } \boldsymbol\Sigma &= (\boldsymbol\Lambda + \bf{A^T L A})^{-1}
+\end{aligned}
+\]
+
 \subsection{Properties}
 \textbf{Bayes rule}: $p(A, B) = p(A|B) p(B) = p(B|A) p(A)$
 
@@ -120,17 +134,6 @@ $\implies \log ( \sum_x x \cdot p(x) ) \geq \sum_x p(x) \log(x)$
 
 Useful derivative: $\frac{\partial \bf{x^T B x}}{\partial \bf{x}} = (\bf{B + B^T}) \bf{x}$
 
-Marginal and Conditional Gaussians:
-$$
-\begin{aligned}
-p(\bf{x}) &= \mathcal{N}(\bf{x} | \boldsymbol\mu, \boldsymbol\Lambda^-1) \\
-p(\bf{y}|\bf{x}) &= \mathcal{N}(\bf{y} | \bf{Ax + b, L}^-1) \\
-\Downarrow \\
-p(\bf{y}) &= \mathcal{N}(\bf{y} | \bf{A} \boldsymbol\mu + \bf{b}, \bf{L}^-1 + \bf{A} \boldsymbol\Lambda^-1 \bf{A}^T)	\\
-p(\bf{x}|\bf{y}) &= \mathcal{N}(\bf{x} |\boldsymbol\Sigma \{ \bf{A^T L(y - b) + \Lambda \mu} \}, \boldsymbol\Sigma) \\
-\text{where } \boldsymbol\Sigma &= (\boldsymbol\Lambda + \bf{A^T L A})^{-1}
-\end{aligned}
-$$
 
 % ----------
 \section{Optimization methods}
@@ -282,13 +285,15 @@ Log-Loss: $- \frac{1}{N}  \sum_{n=1}^{N} y_n \log(\hat{p_n}) + (1-y_n) \log(1-\h
 
 % ----------
 \section{Probabilistic framework}
-The Likelihood Function maps the model parameters to the probability distribution of $\bf{y}$:
-$\mathcal{L}_{lik}\colon \text{parameter space} \to [0;1]\quad  \bbeta \mapsto p(\bf{y} \mid  \bbeta)$
-An underlying $p$ is assumed before. If the observed $y$ are IID, $p(\bf{y} \mid \bbeta) = \prod_n p(y_n \mid \bbeta)$.
+%The Likelihood Function maps the model parameters to the probability distribution of $\bf{y}$:
+%$\mathcal{L}_{lik}\colon \text{parameter space} \to [0;1]\quad  \bbeta \mapsto p(\bf{y} \mid  \bbeta)$
+%An underlying $p$ is assumed before. If the observed $y$ are IID, $p(\bf{y} \mid \bbeta) = \prod_n p(y_n \mid \bbeta)$.
+%
+%$\mathcal{L}_{lik}$ can be viewed as just another cost function. Maximum likelihood then simply chooses the parameters $\bbeta$ such that observed data is most likely. $\bbeta = \argmax_{\text{all} \bbeta} L(\bbeta)$
+%
+%Assuming different $p$ is basically what makes this so flexible. We can chose e.g.:
 
-$\mathcal{L}_{lik}$ can be viewed as just another cost function. Maximum likelihood then simply chooses the parameters $\bbeta$ such that observed data is most likely. $\bbeta = \argmax_{\text{all} \bbeta} L(\bbeta)$
 
-Assuming different $p$ is basically what makes this so flexible. We can chose e.g.:
 
 \begin{tabular}{ l  l }
   \hline
@@ -300,35 +305,45 @@ Assuming different $p$ is basically what makes this so flexible. We can chose e.
 It is a sample approximation of the expected likelihood:
 $\mathcal{L}_{lik}(\bbeta) \approx E_y[ p(y \mid \bbeta) ]$
 
-\subsection{Bayesian methods}
-% TODO: Underbrace the different part, remove text
-Bayes rule: $p(A, B) = p(A|B) p(B) = p(B|A) p(A)$
-
-The \textbf{prior} $p(\bf{f}|\bf{X})$ encodes our prior belief about the ``true'' model $\bf{f}$. The \textbf{likelihood} $p(\bf{y}|\bf{f})$ measures the probability of our (possibly noisy) observations given the prior.
-
-Least-squares tries to find model parameters $\bbeta$ which maximize the likelihood. Ridge regression maximizes the \textbf{posterior} $p(\bbeta|\bf{y})$
-
 \subsection{Bayesian networks}
-We can use a Directed Acyclic Graph (DAG) to define a joint distribution of events. For example, we can express the relationship between \textit{latent factors} (possible ``causes'') $z_i$ and \textit{observations} (results) $y_i$:
+\[
+	\underbrace{p(y, \theta)}_{\text{joint}} = \underbrace{p(y|\theta)}_{\text{likelihood}}\underbrace{p(\theta)}_{\text{prior}} = \underbrace{p(\theta | y)}_{\text{marg.likeli}}\underbrace{p(y)}_{\text{posterior}}
+\]
 
-\begin{colfig}
-  \centering
-  \includegraphics[height=1.5cm]{images/bayesian-network.png}
-\end{colfig}
+Distribution of the type $p_\theta(\vec{x}) = \prod^Kp_\theta(x_k | Pa_k)$, where $Pa_k$ is the set of parents of $x_k$.
+\begin{itemize}
+	\item $m_{i\to a}(z_i) = p(z_i)\prod_{b\in\mathcal{N}(i) \setminus \{a\}}m_{b\to i}(z_i)$
+	\item $m_{a\to i}(z_i)= \sum_{\vec{z_j}: j \neq i}p(y_a | P_a = \vec{z_j})\prod_{j\in\mathcal{N}(a) \setminus \{i\}}m_{j\to a}(\vec{\bar{z}_j})$
+\end{itemize}
+ $\sum_{\vec{z_j}: j \neq i}$ means the sumS over all possible neighbors values except those of $z_i$, and $\vec{\bar{z}_j}$ means the relevant values used for computation (thus take the product of messages from all neighbors except $i$ and send the corresponding $z_j$ value).
 
-This example can be factorized as follows:
-$p(y_1, y_2, z_1, z_2, z_3) = p(y_1 | z_1, z_2) p(y_2 | z_2, z_3) p(z_1) p(z_2) p(z_3)$
-
-We can then obtain the distribution over latent factors ($z_i$) by marginalizing over the unknown variables:
-$p(z_1, z_2, z_3 | y_1, y_2) = \frac{\text{joint}}{p(y_1, y_2)}$\\
-$\implies p(z_1 | y_1, y_2) = \sum_{z_2, z_3} \frac{\text{joint}}{p(y_1, y_2)}$
-
-\subsection{Belief propagation}
-Belief propagation is a message-passing based algorithm used to compute desired marginals (e.g. $p(z_1 | y_1, y_2)$) efficiently. It leverages the factorized expression of the joint. Messages passed:
-
-$m_{z_i \rightarrow y_j} = p(z_i) \Pi(\text{messages received except from } y_j)$
-
-$m_{y_j \rightarrow z_i} = \sum_{z_k \neq z_i} p(y_j | z_k) \Pi(\text{messages received except from } z_i)$
+%Bayes rule: $p(A, B) = p(A|B) p(B) = p(B|A) p(A)$
+%
+%The \textbf{prior} $p(\bf{f}|\bf{X})$ encodes our prior belief about the ``true'' model $\bf{f}$. The \textbf{likelihood} $p(\bf{y}|\bf{f})$ measures the probability of our (possibly noisy) observations given the prior.
+%
+%Least-squares tries to find model parameters $\bbeta$ which maximize the likelihood. Ridge regression maximizes the \textbf{posterior} $p(\bbeta|\bf{y})$
+%
+%\subsection{Bayesian networks}
+%We can use a Directed Acyclic Graph (DAG) to define a joint distribution of events. For example, we can express the relationship between \textit{latent factors} (possible ``causes'') $z_i$ and \textit{observations} (results) $y_i$:
+%
+%\begin{colfig}
+%  \centering
+%  \includegraphics[height=1.5cm]{images/bayesian-network.png}
+%\end{colfig}
+%
+%This example can be factorized as follows:
+%$p(y_1, y_2, z_1, z_2, z_3) = p(y_1 | z_1, z_2) p(y_2 | z_2, z_3) p(z_1) p(z_2) p(z_3)$
+%
+%We can then obtain the distribution over latent factors ($z_i$) by marginalizing over the unknown variables:
+%$p(z_1, z_2, z_3 | y_1, y_2) = \frac{\text{joint}}{p(y_1, y_2)}$\\
+%$\implies p(z_1 | y_1, y_2) = \sum_{z_2, z_3} \frac{\text{joint}}{p(y_1, y_2)}$
+%
+%\subsection{Belief propagation}
+%Belief propagation is a message-passing based algorithm used to compute desired marginals (e.g. $p(z_1 | y_1, y_2)$) efficiently. It leverages the factorized expression of the joint. Messages passed:
+%
+%$m_{z_i \rightarrow y_j} = p(z_i) \Pi(\text{messages received except from } y_j)$
+%
+%$m_{y_j \rightarrow z_i} = \sum_{z_k \neq z_i} p(y_j | z_k) \Pi(\text{messages received except from } z_i)$
 
 % ----------
 \section{Kernel methods}
@@ -356,31 +371,31 @@ Properties of a Kernel:
 \item $\bf{K}$ should be positive semi-definite: $\forall$ nonzero vector $\bf{a}, \bf{a}^T \bf{K} \bf{a} \geq 0$.
 \end{itemize}
 
-\subsection{Gaussian Process}
-The predicting function $f$ is interpreted as a random variable with jointly gaussian prior: $\mathcal{N}(f | \bf{0}, \bf{K})$.
-Defining the Kernel matrix $\bf{K} = \kappa(\bf{X}, \bf{X})$ defines the prior. The key idea is, that if $\bf{x}_i$ and $\bf{x_j}$ are
-deemed by the kernel to be similar, then we expect the output of $f$ at those points to be similar, too.
-
-We can sample functions from this random variable $f$ and we can use prior + measurements to generate predictions.
-
-If we have measurements $\bf{y}$ available, we get a joint distribution with the $\bf{\hat{y}}$ to be predicted:
-
-$
-\begin{bmatrix}
-  \bf{y} \\
-  \bf{\hat{y}}
-\end{bmatrix}
-=
-\mathcal{N} \left(
-  \bf{0},
-  \begin{bmatrix}
-    \kappa(\bf{X}, \bf{X}) + \sigma_n^2 I  & \kappa(\bf{X}, \bf{\hat{X}}) \\
-    \kappa(\bf{\hat{X}}, \bf{X}),          & \kappa(\bf{\hat{X}}, \bf{\hat{X}})
-  \end{bmatrix}
-\right)
-$
-
-This can be conditioned on $\bf{y}$ to find the PDF of $\bf{\hat{y}}$. Advantage: we output our prediction as probabilities (which represent uncertainty).
+%\subsection{Gaussian Process}
+%The predicting function $f$ is interpreted as a random variable with jointly gaussian prior: $\mathcal{N}(f | \bf{0}, \bf{K})$.
+%Defining the Kernel matrix $\bf{K} = \kappa(\bf{X}, \bf{X})$ defines the prior. The key idea is, that if $\bf{x}_i$ and $\bf{x_j}$ are
+%deemed by the kernel to be similar, then we expect the output of $f$ at those points to be similar, too.
+%
+%We can sample functions from this random variable $f$ and we can use prior + measurements to generate predictions.
+%
+%If we have measurements $\bf{y}$ available, we get a joint distribution with the $\bf{\hat{y}}$ to be predicted:
+%
+%$
+%\begin{bmatrix}
+%  \bf{y} \\
+%  \bf{\hat{y}}
+%\end{bmatrix}
+%=
+%\mathcal{N} \left(
+%  \bf{0},
+%  \begin{bmatrix}
+%    \kappa(\bf{X}, \bf{X}) + \sigma_n^2 I  & \kappa(\bf{X}, \bf{\hat{X}}) \\
+%    \kappa(\bf{\hat{X}}, \bf{X}),          & \kappa(\bf{\hat{X}}, \bf{\hat{X}})
+%  \end{bmatrix}
+%\right)
+%$
+%
+%This can be conditioned on $\bf{y}$ to find the PDF of $\bf{\hat{y}}$. Advantage: we output our prediction as probabilities (which represent uncertainty).
 
 % TODO: Add conditional values + remove some text
 
@@ -395,10 +410,14 @@ It's an algorithm which computes the gradient of the cost $\mathcal{L}$ w.r.t. t
 
 Forward pass: compute $a_i$, $z_i$ and $\bf{y}_n$ from $\bf{x}_n$.
 
-Backward pass: work out derivatives from outputs to the target $\bbeta_i^{(k)}$. Using the chain rule:\\
-$\bdelta^{(k-1)} = \frac{\partial \mathcal{L}}{\partial \bf{a}^{(k-1)}} = diag[ h'(\bf{a}^{(k-1)}) ] \bf{B^{(k)T}} \bdelta^{(k)}$\\
-$\frac{\partial \mathcal{L}}{\partial \bf{B}^{(1)}} = \bdelta^{(1)} \bf{x}^T$\\
-$\frac{\partial \mathcal{L}}{\partial \bf{B}^{(k)}} = \bdelta^{(k)} \bf{z}^{(k)T}$
+%Backward pass: work out derivatives from outputs to the target $\bbeta_i^{(k)}$. Using the chain rule:\\
+%$\bdelta^{(k-1)} = \frac{\partial \mathcal{L}}{\partial \bf{a}^{(k-1)}} = diag[ h'(\bf{a}^{(k-1)}) ] \bf{B^{(k)T}} \bdelta^{(k)}$\\
+%$\frac{\partial \mathcal{L}}{\partial \bf{B}^{(1)}} = \bdelta^{(1)} \bf{x}^T$\\
+%$\frac{\partial \mathcal{L}}{\partial \bf{B}^{(k)}} = \bdelta^{(k)} \bf{z}^{(k)T}$
+
+Backward pass: $\bdelta_n^{(k)} \defop \partial\mathcal{L}/\partial a_n^{(k)}$, compute $\bdelta_n^{(k-1)}= diag\left[ \mathbf{h}'(\mathbf{a_n}^{(k)}) \right]\left( \mathbf{B}^{(k)} \right)^T\bdelta_n^{(k)}$
+
+Conclude: $\partial\mathcal{L}/\partial\mathbf{B}^{(k)} = \sum_n\bdelta_n^{(k)}\left( \mathbf{z}_n^{(k)} \right)^T$.
 
 %\subsection{Regularization}
 %NN are not \textit{identifiable} (existence of many local optima), therefore the maximum likelihood estimator is not \textit{consistent}.
@@ -428,27 +447,44 @@ Given $r_{nk}$, $\mu_k = \cfrac{\sum_{n=1}^Nr_{nk}x_n}{\sum_{n=1}^Nr_{nk}}$.
 
 % ----------
 \subsection{Gaussian Mixture Models}
-% TODO Update
-In mixture models, the data is generated by a sum (a mix) of $K$ models. For GMM, these are gaussian:
+Assumptions: $p(r_n = k | \vec{\pi}) = \pi_k$ (where $r_n \in 1:K$, and $p(x_n | r_n = k, \mu, \Sigma) = \mathcal{N}(x_n | \mu_k, \Sigma_k) = \prod_{k=1}^{K}\mathcal{N}(x_n | \mu_k, \Sigma_k)^{r_{nk}}$
 
-$p(\bf{x}_i | \theta) = \sum_{k=1}^K \pi_k p_k(\bf{x}_i | \theta) =  \sum_{k=1}^K \pi_k \mathcal{N}(\bf{x}_i | \underbrace{\bf{\mu}_k, \bf{\Sigma}_k}_{\theta})$
+$p(\bf{x}_i | \theta) = \sum_{k=1}^K p(x_n, r_n = k | \theta) = \sum_{k=1}^K\pi_k\mathcal{N}(x_n | \mu_k, \Sigma_k)$.
 
-To use this for clustering, we first fit this mixture and then compute the posterior $p(z_i = k | \bf{x}_i, \theta)$. This yields \textit{soft} cluster assignments.
+Taking the likelihood, we've $\mathcal{L} = \sum_{n=1}^N\log\left( \sum_{k=1}^K\pi_k\mathcal{N}(x_n | \mu_k, \Sigma_k) \right)$.
+
+\paragraph{Max using EM} Take log lower bound with $p_{kn} = \cfrac{\pi_k\mathcal{N}(x_n | \mu_k, \Sigma_k)}{\sum_{k=1}^K\pi_k\mathcal{N}(x_n | \mu_k, \Sigma_k)}$ (expressed with old $\theta$), we want the maximize $\sum_{k=1}^Kp_{kn}\log\left( \cfrac{\pi_k\mathcal{N}(x_n | \mu_k, \Sigma_k)}{p_{kn}} \right)$, where only $p_{kn}$ is expressed in the old $\theta$. Therefore,
+\begin{eqnarray*}
+	\mu_k^{(i+1)} &=& \cfrac{\sum_{n=1}^Np_{kn}^{(i)}x_n}{\sum_{n=1}^Np_{kn}^{(i)}}\\
+	\Sigma_k^{(i+1)} &=& \cfrac{\sum_{n=1}^N p_{kn}^{(i)} (x_n - \mu_k^{(i+1)})(x_n - \mu_k^{(i+1)})^T}{\sum_{n=1}^N p_{kn}^{(i)}}\\
+  	\pi_k^{(i+1)} &=& \cfrac{1}{N}\sum_{n=1}^Np_{kn}^{(i)}
+\end{eqnarray*}
 
 % ----------
-\section{PCA}
-Find the eigenvectors of the covariance matrix $\bf{X^T X}$ of the data. These form an orthonormal basis $\{ \bf{w}_1, ..., \bf{w}_N\}$ for the data in the directions that have highest variance.
-One can then use the first $L < D$ vectors to rebuild the data: $\bf{\hat{x}}_i = \bf{W} \bf{z}_i = \bf{W} \bf{W}^T \bf{x}_i$, with $\bf{W} = \begin{bmatrix} \bf{w}_1 ; ... ; \bf{w}_L \end{bmatrix}$.
-This minimizes mean square error $\frac{1}{N} \sum_{i=1}^N \bf{x}_i - \bf{\hat{x}}_i^2$.
+\section{Matrix factorization}
+Minimize $L = \frac{1}{2}\sum_{n=1}^N\sum_{k=1}^K(x_{dn} - w_d^Tz_n)^2 + \frac{\lambda_w}{2}\sum_{d=1}^Dw_d^Tw_d + \frac{\lambda_z}{2}\sum_{n=1}Nz_n^Tz_n$. Easy, when the other is fixed. Thus
+\begin{itemize}
+	\item $Z^T = (W^TW + \lambda_zI_M)^{-1}W^TX$
+	\item $W^T = (Z^TZ + \lambda_wI_M)^{-1}Z^TX^T$
+\end{itemize}
 
-\section{SVD}
-The same as with PCA, we can do with SVD:
-\begin{colfig}
-  \centering
-  \includegraphics[width=\linewidth]{images/svd.png}
-\end{colfig}
+\subsection{PCA}
+Use SVD: $X = USV^T$ (with $U,V$ square matriices and orthonormal, $S$ quasi-diagonal and non-negative).
 
-The singular vals of a $N \times D$ matrix $\bf{X}$ are the square roots of the eigenvalues of the $D \times D$ matrix $\bf{X^T X}$
+We've $Xv_i = \left(\sum_{j=1}^Ds_ju_jv_j^T\right)v_i = s_ju_j$. We set $W = US^{1/2}$ and $Z = VS^{1/2}$.
+
+%Find the eigenvectors of the covariance matrix $\bf{X^T X}$ of the data. These form an orthonormal basis $\{ \bf{w}_1, ..., \bf{w}_N\}$ for the data in the directions that have highest variance.
+%One can then use the first $L < D$ vectors to rebuild the data: $\bf{\hat{x}}_i = \bf{W} \bf{z}_i = \bf{W} \bf{W}^T \bf{x}_i$, with $\bf{W} = \begin{bmatrix} \bf{w}_1 ; ... ; \bf{w}_L \end{bmatrix}$.
+%This minimizes mean square error $\frac{1}{N} \sum_{i=1}^N \bf{x}_i - \bf{\hat{x}}_i^2$.
+
+%\section{SVD}
+%The same as with PCA, we can do with SVD:
+%\begin{colfig}
+%  \centering
+%  \includegraphics[width=\linewidth]{images/svd.png}
+%\end{colfig}
+%
+%The singular vals of a $N \times D$ matrix $\bf{X}$ are the square roots of the eigenvalues of the $D \times D$ matrix $\bf{X^T X}$
 
 % ----------
 \section{Concepts}
@@ -514,6 +550,36 @@ In optimization, we get to the dual like this:
   \centering
   \includegraphics[width=\linewidth]{images/prim-dual.png}
 \end{colfig}
+
+\section{Gaussian process}
+Based on $(y, f_*)^T ~\mathcal{N}\left(0, \begin{pmatrix} K&K_*\\K_*&K_{**}\end{pmatrix}\right)$ then $f_*|f \sim\mathcal{N}(\mu, \Sigma)$ s.t.
+\begin{itemize}
+	\item $\mu = K_*K^{-1}y$
+	\item $\Sigma = K_{**}  - K_*K^{-1}K_*$
+\end{itemize}
+
+\section{Random forest}
+We've $X = \{\mathbf{x}_i, y_i\}$.For each input variable $k$ minimize $I_{\text{split}}(k)$: for $x_k > \tau$
+\begin{itemize}
+	\item Split: $L= \{\mathbf{x}_i, y_i\}$ s.t. $x_{ik} >\tau$, and $R = X\setminus L$
+	\item Compute probs: $p_L = \frac{\#(y_i = 1)}{\#L}$ (for elem in $L$) and $p_R = \frac{\#(y_i = 1)}{\#R}$ (for elem in $R$).
+	\item $I_{\text{split}}(k) = \#L\cdot I(p_L) + \#R\cdot I(p_R)$, where $I$ is an impurity measure
+\end{itemize}
+
+Different impurity measure:
+\begin{itemize}
+	\item Misclassification error: $I(p) = 1-\max(p, 1-p)$
+	\item Cross-entropy: $I(p)= -p\log(p) - (1-p\log(1-p))$
+	\item Gini-entropy: $I(p) = 2p(1-p)$
+\end{itemize}
+
+\textbf{Averaging} if $var(f_i) = \sigma^2$ and $corr(f_i, f_j) = \rho\sigma^2$ (for $i\neq j$), with $z_M$ the average of $M$ trees, $var(z_M) = M^{-1}\sigma^2 + \rho\frac{M-1}{M}\sigma^2$.
+
+\textbf{Gain by small covariance}
+\begin{itemize}
+	\item Bagging: $N$ observations with replication from $X$ (don't change its size, just update some obs with replacement)
+	\item Random. feature selection: subset of input variable (typi: $m_{try} = \sqrt{D}$)
+\end{itemize}
 
 \clearpage
 
